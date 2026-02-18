@@ -2,7 +2,7 @@
 
 
 
-Individual Submission                                         A. Escobar
+Network Working Group                                         A. Escobar
 Internet-Draft                                               independent
 Intended status: Informational                          18 February 2026
 Expires: 22 August 2026
@@ -20,6 +20,13 @@ Abstract
    This document defines a common baseline for interoperability,
    including issuer handling rules that improve account matching while
    maintaining compatibility with existing deployments.
+
+Discussion Venues
+
+   This note is to be removed before publishing as an RFC.
+
+   Source for this draft and an issue tracker can be found at
+   https://github.com/andesco/otpauth-uri.
 
 Status of This Memo
 
@@ -444,4 +451,5 @@ Author's Address
 
    Andrew Escobar
    independent
+   Canada
    Email: ietf@andrewe.dev
