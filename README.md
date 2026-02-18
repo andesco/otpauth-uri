@@ -9,3 +9,9 @@ This source document is then processed using the [`internet-draft-template`](htt
 ## Current Status
 
 - Internet-Draft:[`draft-andesco-otpauth-uri`]()
+
+## Submission Notes
+
+- Chosen submission path: workflow-based (`internet-draft-template` GitHub tag/release automation), not manual local upload.
+- Keep `docname: draft-andesco-otpauth-uri-latest` in source (`draft-andesco-otpauth-uri.md`).
+- For Datatracker submission via `internet-draft-template` automation, create a tag or GitHub release named `draft-andesco-otpauth-uri-00` (increment revision for later submissions).

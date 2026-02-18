@@ -1,6 +1,26 @@
 ---
+###
+# Internet-Draft Markdown Template
+#
+# Rename this file from draft-todo-yourname-protocol.md to get started.
+# Draft name format is "draft-<yourname>-<workgroup>-<name>.md".
+#
+# For initial setup, you only need to edit the first block of fields.
+# Only "title" needs to be changed; delete "abbrev" if your title is short.
+# Any other content can be edited, but be careful not to introduce errors.
+# Some fields will be set automatically during setup if they are unchanged.
+#
+# Don't include "-00" or "-latest" in the filename.
+# Labels in the form draft-<yourname>-<workgroup>-<name>-latest are used by
+# the tools to refer to the current version; see "docname" for example.
+#
+# This template uses kramdown-rfc: https://github.com/cabo/kramdown-rfc
+# You can replace the entire file if you prefer a different format.
+# Change the file extension to match the format (.xml for XML, etc...)
+#
+###
 title: "The otpauth URI Scheme"
-abbrev: "otpauth URI"
+abbrev: "otpauth-uri"
 category: info
 
 docname: draft-andesco-otpauth-uri-latest
@@ -9,7 +29,6 @@ number:
 date:
 consensus: false
 v: 3
-ipr: trust200902
 area: Security
 workgroup: Individual Submission
 keyword:
@@ -17,8 +36,6 @@ keyword:
  - hotp
  - totp
 
-stand_alone: yes
-pi: [toc, sortrefs, symrefs]
 
 author:
  -
@@ -102,34 +119,40 @@ where `<type>` identifies the OTP algorithm family and `<parameters>` contains U
 The syntax is defined using ABNF from {{RFC5234}} and URI productions from {{RFC3986}}.
 
 ~~~ abnf
-otpauth-uri  = "otpauth://" otp-type "/" label "?" secret *( "&" optional-parameter )
+uri = "otpauth://" otp-type "/" label "?" parameter
+      *( "&" parameter )
 
-otp-type     = "totp" / "hotp"
+otp-type = "totp" / "hotp"
 
-label        = issuer-label ( ":" / "%3A" ) *"%20" account
-               / issuer-label
-               / account
+label = issuer-label ( ":" / "%3A" ) *"%20" account
+        / issuer-label
+        / account
 
 issuer-label = 1*( unreserved / pct-encoded / sub-delims / "@" )
 account      = 1*( unreserved / pct-encoded / sub-delims / "@" )
 
-secret       = "secret=" 1*( %x41-5A / %x32-37 )  ; Base32 A-Z2-7
-
-optional-parameter = algorithm / digits / counter / period / issuer / extension
-
-algorithm    = "algorithm=" ( "SHA1" / "SHA256" / "SHA512" )
-digits       = "digits=" ( "6" / "8" )
-counter      = "counter=" 1*DIGIT
-period       = "period=" 1*DIGIT
-issuer       = "issuer=" *pchar ; domain name recommended
-extension    = 1*( ALPHA / DIGIT / "-" / "_" ) "=" *pchar
+parameter = secret / algorithm / digits / counter
+            / period / issuer / extension
+            
+secret    = "secret=" 1*( %x41-5A / %x32-37 ) ; Base32 A-Z2-7
+algorithm = "algorithm=" ( "SHA1" / "SHA256" / "SHA512" )
+digits    = "digits=" ( "6" / "8" )
+counter   = "counter=" 1*DIGIT
+period    = "period=" 1*DIGIT
+issuer    = "issuer=" *pchar ; domain name recommended
+extension = 1*( ALPHA / DIGIT / "-" / "_" ) "=" *pchar
 ~~~
 
 Per {{RFC5234}}, quoted ABNF literals are case-insensitive. Therefore, `otpauth`, `totp`, and `hotp` are matched case-insensitively by this grammar. Producers SHOULD emit lowercase forms for consistency. The same case-insensitive matching applies to quoted parameter names and quoted enumerated values in this ABNF.
 
 This ABNF names commonly used parameters explicitly and allows extension parameters. Parameter requirements are defined in the following section. Parameter values MUST percent-encode literal `&` characters as `%26`.
 
-A consumer MUST percent-decode `label` and each parameter value using standard URI decoding rules from {{RFC3986}}.
+A consumer MUST parse `label` before decoding as follows:
+
+- If `label` contains a separator, split the raw string at the first separator, where separator is either literal `:` or percent-encoded `%3A` (case-insensitive).
+- If `label` does not contain a separator, treat the entire `label` as `account`.
+- Percent-decode each parsed component using standard URI decoding rules from {{RFC3986}}.
+- If decoded `issuer-label` or decoded `account` contains a colon, the consumer MUST reject the URI.
 
 ## otp-type
 
@@ -154,11 +177,19 @@ Producers SHOULD percent-encode `label` components using URI encoding rules from
 
 ## Parameters
 
-The following parameters are defined by this document.
+Parameter order is not significant.
+
+A producer MUST include exactly one `secret` parameter.
+
+A consumer MUST reject the URI if `secret` is missing.
+
+A producer MAY include `algorithm`, `digits`, `counter`, `period`, and `issuer`; each known parameter MUST appear at most once.
+
+A consumer MUST reject the URI if any known parameter appears more than once.
 
 ### secret
 
-The `secret` parameter carries the shared OTP secret and is mandatory by the ABNF query rule. The value MUST use unpadded Base32 with alphabet `A-Z2-7`, as specified by {{RFC4648}}. Producers SHOULD emit uppercase Base32 text. Consumers MAY accept lowercase Base32 text for interoperability.
+The `secret` parameter carries the shared OTP secret and is mandatory. The value MUST use unpadded Base32 with alphabet `A-Z2-7`, as specified by {{RFC4648}}. Producers SHOULD emit uppercase Base32 text. Consumers MAY accept lowercase Base32 text for interoperability.
 
 ### issuer
 
@@ -230,16 +261,16 @@ A consumer MUST continue to accept URIs where issuer label prefix and issuer par
 
 # Examples
 
-The following are valid `otpauth:` URIs:
+The following are valid `otpauth:` URIs (where `PB4XU` is the unpadded Base32 encoding of `xyz`):
 
 ~~~
-otpauth://totp/Example?secret=ONSWG4TFOQ
+otpauth://totp/Example?secret=PB4XU&issuer=example.com
 ~~~
 ~~~
-otpauth://totp/Example%20Issuer:alice%40email.com?secret=ONSWG4TFOQ&algorithm=SHA512&digits=8&period=60&issuer=example.com
+otpauth://totp/Example%3Aalice?secret=PB4XU&issuer=example.com
 ~~~
 ~~~
-otpauth://hotp/Example?secret=ONSWG4TFOQ&counter=42&issuer=example.com
+otpauth://hotp/Example?secret=PB4XU&counter=42&issuer=example.com
 ~~~
 
 # Security Considerations
