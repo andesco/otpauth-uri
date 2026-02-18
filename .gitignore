@@ -1,0 +1,7 @@
+.refcache/
+draft-*.html
+draft-*.xml
+draft-*.txt
+local-rfc-style-match.user.js
+
+private/

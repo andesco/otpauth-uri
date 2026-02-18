@@ -1,13 +1,11 @@
-# Internet-Draft Template Repository
+# otpauth URI Internet-Draft
 
-Use this repository as a template if you want to start working on
-[IETF](https://www.ietf.org/) documents. [Click here to create a new repository using the
-template](https://github.com/martinthomson/internet-draft-template/generate).
-Make sure to check "Include all branches", or you will need to enable GitHub Pages manually.
+The Internet-Draft specifies interoperable behavior for the `otpauth` URI scheme used for OTP credential provisioning.
 
-[Read the
-instructions](https://github.com/martinthomson/i-d-template/blob/main/doc/TEMPLATE.md)
-for more information.
+The draft specification is authored in Markdown: [`draft-andesco-otpauth-uri.md`](draft-andesco-otpauth-uri.md)
 
-Once you have created your own repository, start work by
-[renaming the `draft-todo-yourname-protocol.md` file](../../edit/main/draft-todo-yourname-protocol.md).
+This source document is then processed using the [`internet-draft-template`](https://github.com/martinthomson/internet-draft-template) workflow.
+
+## Current Status
+
+- Internet-Draft:[`draft-andesco-otpauth-uri`]()
