@@ -9,8 +9,8 @@ number:
 date:
 consensus: false
 v: 3
-area: Security
-workgroup: Individual Submission
+# area: Security
+# workgroup: Individual Submission
 keyword:
  - otpauth
  - hotp
@@ -113,7 +113,7 @@ account      = 1*( unreserved / pct-encoded / sub-delims / "@" )
 
 parameter = secret / algorithm / digits / counter
             / period / issuer / extension
-            
+
 secret    = "secret=" 1*( %x41-5A / %x32-37 ) ; Base32 A-Z2-7
 algorithm = "algorithm=" ( "SHA1" / "SHA256" / "SHA512" )
 digits    = "digits=" ( "6" / "8" )
