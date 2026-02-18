@@ -21,6 +21,7 @@ author:
  -
     fullname: Andrew Escobar
     organization: independent
+    country: Canada
     email: ietf@andrewe.dev
 
 normative:
