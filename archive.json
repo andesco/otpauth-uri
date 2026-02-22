@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-02-19T00:03:44.178711+00:00",
+  "timestamp": "2026-02-22T00:01:33.148425+00:00",
   "repo": "andesco/otpauth-uri",
   "labels": [
     {
@@ -49,6 +49,39 @@
       "color": "ffffff"
     }
   ],
-  "issues": [],
+  "issues": [
+    {
+      "number": 1,
+      "id": "I_kwDORSjQBs7sWFeY",
+      "title": "Align `label` ABNF with Google grammar (drop issuer-only alternative)",
+      "url": "https://github.com/andesco/otpauth-uri/issues/1",
+      "state": "OPEN",
+      "author": "andesco",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "The current draft ABNF allows three alternatives:\n\n~~~abnf\nlabel = issuer-label ( \":\" / \"%3A\" ) *\"%20\" account\n        / issuer-label\n        / account\n~~~\n\nGoogle\u2019s archived ABNF allow two:\n\n~~~abnf\nlabel = accountname / issuer ( \":\" / \"%3A\" ) *\"%20\" accountname\n~~~\n\nFor greater alignment, adopt the same structure:\n\n~~~abnf\nlabel = account / issuer-label ( \":\" / \"%3A\" ) *\"%20\" account\n~~~\n\n- removes the `issuer-label`-only ABNF branch, which is broader and can be semantically ambiguous.\n- better match current parsing prose that treats labels without a separator as `account`\n- improves interoperability by reducing grammar divergence from industry recognized documentation\n",
+      "createdAt": "2026-02-19T21:28:52Z",
+      "updatedAt": "2026-02-19T21:28:52Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 2,
+      "id": "I_kwDORSjQBs7sWFhU",
+      "title": "Clarify title/scope: general `otpauth` scheme vs HOTP/TOTP profile",
+      "url": "https://github.com/andesco/otpauth-uri/issues/2",
+      "state": "OPEN",
+      "author": "andesco",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "The draft currently positions itself as an `otpauth` URI scheme specification, but its normative behavior is intentionally focused on HOTP and TOTP. That raises a scope/title question:\n\nShould it be framed as the HOTP/TOTP profile, leaving room for future extensions (for example, new OTP methods)?\n\nProposed direction:\n\n- Keep the document as an interoperability baseline for HOTP/TOTP.\n- Make scope explicit so future extensions remain possible without conflicting with this draft.\n\nSuggested title update:\n\n~~~text\nThe otpauth Specification for HOTP and TOTP\n~~~\n\nSuggested abstact:\n\n~~~text\nThis document defines syntax and processing for using the otpauth URI scheme to provision HOTP (RFC 4226) and TOTP (RFC 6238) credentials.\n  \nThis document defines a common baseline for interoperability, including issuer handling rules that improve crdential matching while maintaining compatibility with existing deployments,\n~~~\n",
+      "createdAt": "2026-02-19T21:28:53Z",
+      "updatedAt": "2026-02-19T21:28:53Z",
+      "closedAt": null,
+      "comments": []
+    }
+  ],
   "pulls": []
 }
