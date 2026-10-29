@@ -4,22 +4,24 @@
 
 Network Working Group                                         A. Escobar
 Internet-Draft                                               independent
-Intended status: Informational                          18 February 2026
-Expires: 22 August 2026
+Intended status: Informational                           29 October 2026
+Expires: 2 May 2027
 
 
-                         The otpauth URI Scheme
+      The "otpauth" URI Scheme: One-Time Password (OTP) Credential
+                              Provisioning
                     draft-andesco-otpauth-uri-latest
 
 Abstract
 
    This document defines syntax and processing rules for the otpauth:
    URI scheme used to provision one-time-password (OTP) credentials
-   (verification codes).
+   (verification codes) for HOTP and TOTP.
 
    This document defines a common baseline for interoperability,
    including issuer handling rules that improve account matching while
-   maintaining compatibility with existing deployments.
+   maintaining compatibility with existing deployments.  It does not
+   preclude future extensions for other OTP methods.
 
 Discussion Venues
 
@@ -43,7 +45,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 22 August 2026.
+   This Internet-Draft will expire on 2 May 2027.
 
 Copyright Notice
 
@@ -100,8 +102,32 @@ Table of Contents
    differ on semantics for issuer information.
 
    This document defines interoperable behavior for URI producers and
-   consumers, with emphasis on reliable account association in modern
-   password managers.
+   consumers for HOTP and TOTP, with emphasis on reliable account
+   association in modern password managers.  This document does not
+   preclude future extensions for other OTP methods.
+
+   An earlier individual Internet-Draft, [I-D.linuxgemini-otpauth-uri],
+   also proposes standardizing the otpauth: URI scheme.  The two
+   documents differ mainly in these ways:
+
+   *  This document defines normative processing rules for producers and
+      consumers, including conditions under which a consumer must reject
+      a URI.  The earlier draft describes the syntax without such rules.
+
+   *  This document permits the legacy issuer label prefix for
+      compatibility and makes the issuer parameter authoritative for
+      account matching.  The earlier draft instead recommends carrying
+      the issuer only as a separate parameter.
+
+   *  This document sets a minimum consumer baseline (SHA1 and 6 digits)
+      and treats other values as SHOULD.  The earlier draft calls for
+      support of all of its optional parameters in all cases.
+
+   *  This document constrains the label and secret grammar using
+      [RFC3986] productions.
+
+   *  This document adds Security and Privacy Considerations for the
+      shared secret.
 
 2.  Conventions and Definitions
 
@@ -435,6 +461,13 @@ Table of Contents
               Google, "Key Uri Format", <https://github.com/google/
               google-authenticator/wiki/Key-Uri-Format>.
 
+   [I-D.linuxgemini-otpauth-uri]
+              Eroğlu, I. Y., "One-Time Password (OTP) Credential
+              Provisioning URI Format: otpauth", Work in Progress,
+              Internet-Draft, draft-linuxgemini-otpauth-uri-03, 24
+              August 2026, <https://datatracker.ietf.org/doc/html/draft-
+              linuxgemini-otpauth-uri-03>.
+
    [URI-SCHEMES]
               Internet Assigned Numbers Authority, "Uniform Resource
               Identifier (URI) Schemes",
@@ -443,9 +476,14 @@ Table of Contents
 
 Acknowledgments
 
-   The author thanks the maintainers and implementers of OTP ecosystems,
-   including the teams at Apple and Google whose documentation helped
-   shape existing interoperable behavior.
+   The author thanks the maintainers and implementers of authenticator
+   applications and password managers, including the teams at Apple and
+   Google whose documentation helped shape existing interoperable
+   behavior.
+
+   The author also thanks İlteriş Eroğlu, author of
+   [I-D.linuxgemini-otpauth-uri], for earlier work bringing the otpauth:
+   URI scheme to the IETF.
 
 Author's Address
 
