@@ -8,8 +8,7 @@ Intended status: Informational                           29 October 2026
 Expires: 2 May 2027
 
 
-      The "otpauth" URI Scheme: One-Time Password (OTP) Credential
-                              Provisioning
+The otpauth URI Scheme: One-Time Password (OTP) Credential Provisioning
                     draft-andesco-otpauth-uri-latest
 
 Abstract
@@ -176,9 +175,7 @@ Table of Contents
 
    otp-type = "totp" / "hotp"
 
-   label = issuer-label ( ":" / "%3A" ) *"%20" account
-           / issuer-label
-           / account
+   label = account / issuer-label ( ":" / "%3A" ) *"%20" account
 
    issuer-label = 1*( unreserved / pct-encoded / sub-delims / "@" )
    account      = 1*( unreserved / pct-encoded / sub-delims / "@" )
@@ -188,9 +185,9 @@ Table of Contents
 
    secret    = "secret=" 1*( %x41-5A / %x32-37 ) ; Base32 A-Z2-7
    algorithm = "algorithm=" ( "SHA1" / "SHA256" / "SHA512" )
-   digits    = "digits=" ( "6" / "8" )
-   counter   = "counter=" 1*DIGIT
-   period    = "period=" 1*DIGIT
+   digits    = "digits=" ( "6" / "7" / "8" )
+   counter   = "counter=" 1*DIGIT ; 0 to 2^64 - 1
+   period    = "period=" 1*DIGIT ; greater than zero
    issuer    = "issuer=" *pchar ; domain name recommended
    extension = 1*( ALPHA / DIGIT / "-" / "_" ) "=" *pchar
 
@@ -223,6 +220,7 @@ Table of Contents
 3.2.  otp-type
 
    otp-type identifies the OTP method and MUST be either totp or hotp.
+   A consumer MUST reject a URI with any other otp-type.
 
 3.3.  label
 
@@ -253,11 +251,36 @@ Table of Contents
 
    A consumer MUST reject the URI if secret is missing.
 
-   A producer MAY include algorithm, digits, counter, period, and
-   issuer; each known parameter MUST appear at most once.
+   A producer MUST include counter if otp-type is hotp.  A producer MAY
+   include algorithm, digits, and issuer, and MAY include period if otp-
+   type is totp.  Each known parameter MUST appear at most once.
 
    A consumer MUST reject the URI if any known parameter appears more
    than once.
+
+   Table 1 shows which parameters apply to each otp-type.
+
+                 +===========+=============+=============+
+                 | Parameter | totp        | hotp        |
+                 +===========+=============+=============+
+                 | secret    | REQUIRED    | REQUIRED    |
+                 +-----------+-------------+-------------+
+                 | issuer    | RECOMMENDED | RECOMMENDED |
+                 +-----------+-------------+-------------+
+                 | algorithm | OPTIONAL    | OPTIONAL    |
+                 +-----------+-------------+-------------+
+                 | digits    | OPTIONAL    | OPTIONAL    |
+                 +-----------+-------------+-------------+
+                 | period    | OPTIONAL    | NOT USED    |
+                 +-----------+-------------+-------------+
+                 | counter   | NOT USED    | REQUIRED    |
+                 +-----------+-------------+-------------+
+
+                    Table 1: Parameter applicability by
+                                  otp-type
+
+   NOT USED means that a producer SHOULD NOT include the parameter and a
+   consumer MUST ignore it.
 
 3.4.1.  secret
 
@@ -265,6 +288,12 @@ Table of Contents
    The value MUST use unpadded Base32 with alphabet A-Z2-7, as specified
    by [RFC4648].  Producers SHOULD emit uppercase Base32 text.
    Consumers MAY accept lowercase Base32 text for interoperability.
+
+   [RFC4226] requires a shared secret of at least 128 bits and
+   recommends 160 bits (Section 4).  Producers MUST use a secret that
+   decodes to at least 128 bits and SHOULD use at least 160 bits.  A
+   consumer MAY reject a URI whose decoded secret is shorter than 128
+   bits.
 
 3.4.2.  issuer
 
@@ -292,8 +321,13 @@ Table of Contents
 
    *  Consumers SHOULD support SHA256 and SHA512.
 
-   For hotp URIs, [RFC4226] defines HOTP with HMAC-SHA-1, so SHA1 is
-   RECOMMENDED for maximum compatibility.
+   [RFC4226] defines HOTP with HMAC-SHA-1 only, and [RFC6238] adds HMAC-
+   SHA-256 and HMAC-SHA-512 for TOTP.  This document also permits SHA256
+   and SHA512 with hotp, applying the same HMAC substitution, because
+   some consumers support it.  Some consumers ignore this parameter and
+   always use SHA1; such a consumer generates codes that do not match
+   the producer's.  A producer SHOULD use SHA1 with hotp unless it knows
+   the consumer supports other values.
 
    If a consumer receives an unsupported algorithm value, it SHOULD
    reject the URI.
@@ -301,7 +335,7 @@ Table of Contents
 3.4.4.  digits
 
    digits is OPTIONAL.  If absent, the default is 6.  Valid digits
-   values are 6 and 8.
+   values are 6, 7, and 8.
 
    *  Producers SHOULD use 6 or 8.
 
@@ -309,17 +343,40 @@ Table of Contents
 
    *  Consumers SHOULD support 8.
 
+   *  Consumers MAY support 7.
+
+   [RFC4226] permits 7-digit codes, but [GOOGLE-KEYURI] lists only 6 and
+   8, so producers are advised to avoid 7.
+
    If a consumer receives an unsupported digits value, it SHOULD reject
    the URI.
 
 3.4.5.  period
 
-   period is OPTIONAL for totp.  If absent, the default is 30.  It MUST
-   be ignored for hotp.
+   period is OPTIONAL for totp.  It is the time step, in seconds,
+   defined in [RFC6238].  The value MUST be a decimal integer greater
+   than zero.  If absent, the default is 30.  A consumer MUST reject the
+   URI if period is not a decimal integer greater than zero.
+
+   The start of time counting (T0 in [RFC6238]) is the Unix epoch, and
+   time is measured in UTC.  This document defines no parameter to
+   change it.
+
+   period is NOT USED for hotp.
 
 3.4.6.  counter
 
-   counter is REQUIRED for hotp and MUST be ignored for totp.
+   counter is REQUIRED for hotp.  It is the initial counter value, the
+   value the consumer uses to generate the first code.  The value MUST
+   be a decimal integer from 0 to 18446744073709551615 (2^64 - 1)
+   inclusive.  A consumer MUST reject an hotp URI if counter is missing
+   or is not a decimal integer in this range.
+
+   After provisioning, the consumer maintains and increments the
+   counter.  A URI carries only the initial value and does not track
+   later state.
+
+   counter is NOT USED for totp.
 
    These parameters map to HOTP and TOTP behavior defined in [RFC4226]
    and [RFC6238], while allowing extension values where explicitly
@@ -393,6 +450,21 @@ Table of Contents
 
    Consumers SHOULD display issuer and account information clearly
    before import so users can detect phishing or provisioning mistakes.
+
+   For hotp, the counter in a URI is only the initial value.  A consumer
+   that imports a previously issued URI again after generating codes
+   would reset its counter, which can repeat codes already used or put
+   it out of step with the verifier.  A consumer SHOULD NOT silently
+   replace the counter of an existing credential with the value from a
+   newly imported URI.
+
+   For totp, a code is valid only if the consumer's clock and the
+   verifier's clock agree closely enough.  Clock synchronization is
+   outside the scope of this document.
+
+   Verifier behavior, such as HOTP counter resynchronization and TOTP
+   acceptance windows, is also outside the scope of this document; see
+   [RFC4226] and [RFC6238].
 
 7.  Privacy Considerations
 

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta content="Common,Latin" name="scripts">
 <meta content="initial-scale=1.0" name="viewport">
-<title>The "otpauth" URI Scheme: One-Time Password (OTP) Credential Provisioning</title>
+<title>The otpauth URI Scheme: One-Time Password (OTP) Credential Provisioning</title>
 <meta content="Andrew Escobar" name="author">
 <meta content="
        This document defines syntax and processing rules for the  otpauth:  URI
@@ -1081,7 +1081,7 @@ svg {
 </dd>
 </dl>
 </div>
-<h1 id="title">The "otpauth" URI Scheme: One-Time Password (OTP) Credential Provisioning</h1>
+<h1 id="title">The otpauth URI Scheme: One-Time Password (OTP) Credential Provisioning</h1>
 <section id="section-abstract">
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
 <p id="section-abstract-1">This document defines syntax and processing rules for the <code>otpauth:</code> URI
@@ -1320,9 +1320,7 @@ uri = "otpauth://" otp-type "/" label "?" parameter
 
 otp-type = "totp" / "hotp"
 
-label = issuer-label ( ":" / "%3A" ) *"%20" account
-        / issuer-label
-        / account
+label = account / issuer-label ( ":" / "%3A" ) *"%20" account
 
 issuer-label = 1*( unreserved / pct-encoded / sub-delims / "@" )
 account      = 1*( unreserved / pct-encoded / sub-delims / "@" )
@@ -1332,9 +1330,9 @@ parameter = secret / algorithm / digits / counter
 
 secret    = "secret=" 1*( %x41-5A / %x32-37 ) ; Base32 A-Z2-7
 algorithm = "algorithm=" ( "SHA1" / "SHA256" / "SHA512" )
-digits    = "digits=" ( "6" / "8" )
-counter   = "counter=" 1*DIGIT
-period    = "period=" 1*DIGIT
+digits    = "digits=" ( "6" / "7" / "8" )
+counter   = "counter=" 1*DIGIT ; 0 to 2^64 - 1
+period    = "period=" 1*DIGIT ; greater than zero
 issuer    = "issuer=" *pchar ; domain name recommended
 extension = 1*( ALPHA / DIGIT / "-" / "_" ) "=" *pchar
 </pre><a href="#section-3.1-2" class="pilcrow">¶</a>
@@ -1363,7 +1361,7 @@ extension = 1*( ALPHA / DIGIT / "-" / "_" ) "=" *pchar
         <h3 id="name-otp-type">
 <a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-otp-type" class="section-name selfRef">otp-type</a>
         </h3>
-<p id="section-3.2-1"><code>otp-type</code> identifies the OTP method and MUST be either <code>totp</code> or <code>hotp</code>.<a href="#section-3.2-1" class="pilcrow">¶</a></p>
+<p id="section-3.2-1"><code>otp-type</code> identifies the OTP method and MUST be either <code>totp</code> or <code>hotp</code>. A consumer MUST reject a URI with any other <code>otp-type</code>.<a href="#section-3.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="label">
@@ -1403,14 +1401,76 @@ extension = 1*( ALPHA / DIGIT / "-" / "_" ) "=" *pchar
 <p id="section-3.4-1">Parameter order is not significant.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
 <p id="section-3.4-2">A producer MUST include exactly one <code>secret</code> parameter.<a href="#section-3.4-2" class="pilcrow">¶</a></p>
 <p id="section-3.4-3">A consumer MUST reject the URI if <code>secret</code> is missing.<a href="#section-3.4-3" class="pilcrow">¶</a></p>
-<p id="section-3.4-4">A producer MAY include <code>algorithm</code>, <code>digits</code>, <code>counter</code>, <code>period</code>, and <code>issuer</code>; each known parameter MUST appear at most once.<a href="#section-3.4-4" class="pilcrow">¶</a></p>
+<p id="section-3.4-4">A producer MUST include <code>counter</code> if <code>otp-type</code> is <code>hotp</code>. A producer MAY include <code>algorithm</code>, <code>digits</code>, and <code>issuer</code>, and MAY include <code>period</code> if <code>otp-type</code> is <code>totp</code>. Each known parameter MUST appear at most once.<a href="#section-3.4-4" class="pilcrow">¶</a></p>
 <p id="section-3.4-5">A consumer MUST reject the URI if any known parameter appears more than once.<a href="#section-3.4-5" class="pilcrow">¶</a></p>
+<p id="section-3.4-6"><a href="#param-applicability" class="auto internal xref">Table 1</a> shows which parameters apply to each <code>otp-type</code>.<a href="#section-3.4-6" class="pilcrow">¶</a></p>
+<span id="name-parameter-applicability-by-"></span><div id="param-applicability">
+<table class="center" id="table-1">
+          <caption>
+<a href="#table-1" class="selfRef">Table 1</a>:
+<a href="#name-parameter-applicability-by-" class="selfRef">Parameter applicability by otp-type</a>
+          </caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">Parameter</th>
+              <th class="text-left" rowspan="1" colspan="1">totp</th>
+              <th class="text-left" rowspan="1" colspan="1">hotp</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>secret</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">REQUIRED</td>
+              <td class="text-left" rowspan="1" colspan="1">REQUIRED</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>issuer</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">RECOMMENDED</td>
+              <td class="text-left" rowspan="1" colspan="1">RECOMMENDED</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>algorithm</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">OPTIONAL</td>
+              <td class="text-left" rowspan="1" colspan="1">OPTIONAL</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>digits</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">OPTIONAL</td>
+              <td class="text-left" rowspan="1" colspan="1">OPTIONAL</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>period</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">OPTIONAL</td>
+              <td class="text-left" rowspan="1" colspan="1">NOT USED</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>counter</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">NOT USED</td>
+              <td class="text-left" rowspan="1" colspan="1">REQUIRED</td>
+            </tr>
+          </tbody>
+        </table>
+</div>
+<p id="section-3.4-8">NOT USED means that a producer SHOULD NOT include the parameter and a consumer MUST ignore it.<a href="#section-3.4-8" class="pilcrow">¶</a></p>
 <div id="secret">
 <section id="section-3.4.1">
           <h4 id="name-secret">
 <a href="#section-3.4.1" class="section-number selfRef">3.4.1. </a><a href="#name-secret" class="section-name selfRef">secret</a>
           </h4>
 <p id="section-3.4.1-1">The <code>secret</code> parameter carries the shared OTP secret and is mandatory. The value MUST use unpadded Base32 with alphabet <code>A-Z2-7</code>, as specified by <span>[<a href="#RFC4648" class="cite xref">RFC4648</a>]</span>. Producers SHOULD emit uppercase Base32 text. Consumers MAY accept lowercase Base32 text for interoperability.<a href="#section-3.4.1-1" class="pilcrow">¶</a></p>
+<p id="section-3.4.1-2"><span>[<a href="#RFC4226" class="cite xref">RFC4226</a>]</span> requires a shared secret of at least 128 bits and recommends 160 bits (Section 4). Producers MUST use a secret that decodes to at least 128 bits and SHOULD use at least 160 bits. A consumer MAY reject a URI whose decoded <code>secret</code> is shorter than 128 bits.<a href="#section-3.4.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="issuer">
@@ -1439,7 +1499,7 @@ extension = 1*( ALPHA / DIGIT / "-" / "_" ) "=" *pchar
               <p id="section-3.4.3-3.2.1">Consumers SHOULD support <code>SHA256</code> and <code>SHA512</code>.<a href="#section-3.4.3-3.2.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-3.4.3-4">For <code>hotp</code> URIs, <span>[<a href="#RFC4226" class="cite xref">RFC4226</a>]</span> defines HOTP with HMAC-SHA-1, so <code>SHA1</code> is RECOMMENDED for maximum compatibility.<a href="#section-3.4.3-4" class="pilcrow">¶</a></p>
+<p id="section-3.4.3-4"><span>[<a href="#RFC4226" class="cite xref">RFC4226</a>]</span> defines HOTP with HMAC-SHA-1 only, and <span>[<a href="#RFC6238" class="cite xref">RFC6238</a>]</span> adds HMAC-SHA-256 and HMAC-SHA-512 for TOTP. This document also permits <code>SHA256</code> and <code>SHA512</code> with <code>hotp</code>, applying the same HMAC substitution, because some consumers support it. Some consumers ignore this parameter and always use <code>SHA1</code>; such a consumer generates codes that do not match the producer's. A producer SHOULD use <code>SHA1</code> with <code>hotp</code> unless it knows the consumer supports other values.<a href="#section-3.4.3-4" class="pilcrow">¶</a></p>
 <p id="section-3.4.3-5">If a consumer receives an unsupported <code>algorithm</code> value, it SHOULD reject the URI.<a href="#section-3.4.3-5" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -1448,7 +1508,7 @@ extension = 1*( ALPHA / DIGIT / "-" / "_" ) "=" *pchar
           <h4 id="name-digits">
 <a href="#section-3.4.4" class="section-number selfRef">3.4.4. </a><a href="#name-digits" class="section-name selfRef">digits</a>
           </h4>
-<p id="section-3.4.4-1"><code>digits</code> is OPTIONAL. If absent, the default is <code>6</code>. Valid <code>digits</code> values are <code>6</code> and <code>8</code>.<a href="#section-3.4.4-1" class="pilcrow">¶</a></p>
+<p id="section-3.4.4-1"><code>digits</code> is OPTIONAL. If absent, the default is <code>6</code>. Valid <code>digits</code> values are <code>6</code>, <code>7</code>, and <code>8</code>.<a href="#section-3.4.4-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-3.4.4-2.1">
               <p id="section-3.4.4-2.1.1">Producers SHOULD use <code>6</code> or <code>8</code>.<a href="#section-3.4.4-2.1.1" class="pilcrow">¶</a></p>
@@ -1459,8 +1519,12 @@ extension = 1*( ALPHA / DIGIT / "-" / "_" ) "=" *pchar
             <li class="normal" id="section-3.4.4-2.3">
               <p id="section-3.4.4-2.3.1">Consumers SHOULD support <code>8</code>.<a href="#section-3.4.4-2.3.1" class="pilcrow">¶</a></p>
 </li>
+            <li class="normal" id="section-3.4.4-2.4">
+              <p id="section-3.4.4-2.4.1">Consumers MAY support <code>7</code>.<a href="#section-3.4.4-2.4.1" class="pilcrow">¶</a></p>
+</li>
           </ul>
-<p id="section-3.4.4-3">If a consumer receives an unsupported <code>digits</code> value, it SHOULD reject the URI.<a href="#section-3.4.4-3" class="pilcrow">¶</a></p>
+<p id="section-3.4.4-3"><span>[<a href="#RFC4226" class="cite xref">RFC4226</a>]</span> permits 7-digit codes, but <span>[<a href="#GOOGLE-KEYURI" class="cite xref">GOOGLE-KEYURI</a>]</span> lists only 6 and 8, so producers are advised to avoid 7.<a href="#section-3.4.4-3" class="pilcrow">¶</a></p>
+<p id="section-3.4.4-4">If a consumer receives an unsupported <code>digits</code> value, it SHOULD reject the URI.<a href="#section-3.4.4-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="period">
@@ -1468,7 +1532,9 @@ extension = 1*( ALPHA / DIGIT / "-" / "_" ) "=" *pchar
           <h4 id="name-period">
 <a href="#section-3.4.5" class="section-number selfRef">3.4.5. </a><a href="#name-period" class="section-name selfRef">period</a>
           </h4>
-<p id="section-3.4.5-1"><code>period</code> is OPTIONAL for <code>totp</code>. If absent, the default is <code>30</code>. It MUST be ignored for <code>hotp</code>.<a href="#section-3.4.5-1" class="pilcrow">¶</a></p>
+<p id="section-3.4.5-1"><code>period</code> is OPTIONAL for <code>totp</code>. It is the time step, in seconds, defined in <span>[<a href="#RFC6238" class="cite xref">RFC6238</a>]</span>. The value MUST be a decimal integer greater than zero. If absent, the default is <code>30</code>. A consumer MUST reject the URI if <code>period</code> is not a decimal integer greater than zero.<a href="#section-3.4.5-1" class="pilcrow">¶</a></p>
+<p id="section-3.4.5-2">The start of time counting (T0 in <span>[<a href="#RFC6238" class="cite xref">RFC6238</a>]</span>) is the Unix epoch, and time is measured in UTC. This document defines no parameter to change it.<a href="#section-3.4.5-2" class="pilcrow">¶</a></p>
+<p id="section-3.4.5-3"><code>period</code> is NOT USED for <code>hotp</code>.<a href="#section-3.4.5-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="counter">
@@ -1476,8 +1542,10 @@ extension = 1*( ALPHA / DIGIT / "-" / "_" ) "=" *pchar
           <h4 id="name-counter">
 <a href="#section-3.4.6" class="section-number selfRef">3.4.6. </a><a href="#name-counter" class="section-name selfRef">counter</a>
           </h4>
-<p id="section-3.4.6-1"><code>counter</code> is REQUIRED for <code>hotp</code> and MUST be ignored for <code>totp</code>.<a href="#section-3.4.6-1" class="pilcrow">¶</a></p>
-<p id="section-3.4.6-2">These parameters map to HOTP and TOTP behavior defined in <span>[<a href="#RFC4226" class="cite xref">RFC4226</a>]</span> and <span>[<a href="#RFC6238" class="cite xref">RFC6238</a>]</span>, while allowing extension values where explicitly noted.<a href="#section-3.4.6-2" class="pilcrow">¶</a></p>
+<p id="section-3.4.6-1"><code>counter</code> is REQUIRED for <code>hotp</code>. It is the initial counter value, the value the consumer uses to generate the first code. The value MUST be a decimal integer from 0 to 18446744073709551615 (2^64 - 1) inclusive. A consumer MUST reject an <code>hotp</code> URI if <code>counter</code> is missing or is not a decimal integer in this range.<a href="#section-3.4.6-1" class="pilcrow">¶</a></p>
+<p id="section-3.4.6-2">After provisioning, the consumer maintains and increments the counter. A URI carries only the initial value and does not track later state.<a href="#section-3.4.6-2" class="pilcrow">¶</a></p>
+<p id="section-3.4.6-3"><code>counter</code> is NOT USED for <code>totp</code>.<a href="#section-3.4.6-3" class="pilcrow">¶</a></p>
+<p id="section-3.4.6-4">These parameters map to HOTP and TOTP behavior defined in <span>[<a href="#RFC4226" class="cite xref">RFC4226</a>]</span> and <span>[<a href="#RFC6238" class="cite xref">RFC6238</a>]</span>, while allowing extension values where explicitly noted.<a href="#section-3.4.6-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="additional-parameters">
@@ -1566,6 +1634,9 @@ otpauth://hotp/Example?secret=PB4XU&amp;counter=42&amp;issuer=example.com
 </li>
       </ul>
 <p id="section-6-4">Consumers SHOULD display issuer and account information clearly before import so users can detect phishing or provisioning mistakes.<a href="#section-6-4" class="pilcrow">¶</a></p>
+<p id="section-6-5">For <code>hotp</code>, the <code>counter</code> in a URI is only the initial value. A consumer that imports a previously issued URI again after generating codes would reset its counter, which can repeat codes already used or put it out of step with the verifier. A consumer SHOULD NOT silently replace the counter of an existing credential with the value from a newly imported URI.<a href="#section-6-5" class="pilcrow">¶</a></p>
+<p id="section-6-6">For <code>totp</code>, a code is valid only if the consumer's clock and the verifier's clock agree closely enough. Clock synchronization is outside the scope of this document.<a href="#section-6-6" class="pilcrow">¶</a></p>
+<p id="section-6-7">Verifier behavior, such as HOTP counter resynchronization and TOTP acceptance windows, is also outside the scope of this document; see <span>[<a href="#RFC4226" class="cite xref">RFC4226</a>]</span> and <span>[<a href="#RFC6238" class="cite xref">RFC6238</a>]</span>.<a href="#section-6-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="privacy-considerations">
