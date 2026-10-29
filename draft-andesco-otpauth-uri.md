@@ -1,5 +1,5 @@
 ---
-title: "The otpauth URI Scheme"
+title: "The otpauth URI Scheme: One-Time Password (OTP) Credential Provisioning"
 abbrev: "otpauth-uri"
 category: info
 
@@ -44,6 +44,7 @@ informative:
     author:
       org: Google
     date: false
+  I-D.linuxgemini-otpauth-uri:
   APPLE-VERIFICATION-CODES:
     target: https://developer.apple.com/documentation/authenticationservices/securing-logins-with-icloud-keychain-verification-codes
     title: Securing Logins with iCloud Keychain Verification Codes
@@ -54,9 +55,14 @@ informative:
 
 --- abstract
 
-This document defines syntax and processing rules for the `otpauth:` URI scheme used to provision one-time-password (OTP) credentials (verification codes).
+This document defines syntax and processing rules for the `otpauth:` URI
+scheme used to provision one-time-password (OTP) credentials (verification
+codes) for HOTP and TOTP.
 
-This document defines a common baseline for interoperability, including issuer handling rules that improve account matching while maintaining compatibility with existing deployments.
+This document defines a common baseline for interoperability, including issuer
+handling rules that improve account matching while maintaining compatibility
+with existing deployments. It does not preclude future extensions for other OTP
+methods.
 
 --- middle
 
@@ -66,7 +72,27 @@ The `otpauth:` URI scheme is used to transfer OTP configuration, including a sha
 
 Current ecosystem behavior is primarily described by vendor documentation, including Google's `otpauth` key URI format {{GOOGLE-KEYURI}} and Apple's verification code guidance {{APPLE-VERIFICATION-CODES}}. Those documents are largely aligned, but differ on semantics for issuer information.
 
-This document defines interoperable behavior for URI producers and consumers, with emphasis on reliable account association in modern password managers.
+This document defines interoperable behavior for URI producers and consumers for
+HOTP and TOTP, with emphasis on reliable account association in modern password
+managers. This document does not preclude future extensions for other OTP
+methods.
+
+An earlier individual Internet-Draft, {{I-D.linuxgemini-otpauth-uri}}, also
+proposes standardizing the `otpauth:` URI scheme. The two documents differ
+mainly in these ways:
+
+- This document defines normative processing rules for producers and consumers,
+  including conditions under which a consumer must reject a URI. The earlier
+  draft describes the syntax without such rules.
+- This document permits the legacy issuer label prefix for compatibility and
+  makes the `issuer` parameter authoritative for account matching. The earlier
+  draft instead recommends carrying the issuer only as a separate parameter.
+- This document sets a minimum consumer baseline (SHA1 and 6 digits) and treats
+  other values as SHOULD. The earlier draft calls for support of all of its
+  optional parameters in all cases.
+- This document constrains the `label` and `secret` grammar using {{RFC3986}}
+  productions.
+- This document adds Security and Privacy Considerations for the shared secret.
 
 # Conventions and Definitions
 
@@ -105,9 +131,7 @@ uri = "otpauth://" otp-type "/" label "?" parameter
 
 otp-type = "totp" / "hotp"
 
-label = issuer-label ( ":" / "%3A" ) *"%20" account
-        / issuer-label
-        / account
+label = account / issuer-label ( ":" / "%3A" ) *"%20" account
 
 issuer-label = 1*( unreserved / pct-encoded / sub-delims / "@" )
 account      = 1*( unreserved / pct-encoded / sub-delims / "@" )
@@ -117,9 +141,9 @@ parameter = secret / algorithm / digits / counter
 
 secret    = "secret=" 1*( %x41-5A / %x32-37 ) ; Base32 A-Z2-7
 algorithm = "algorithm=" ( "SHA1" / "SHA256" / "SHA512" )
-digits    = "digits=" ( "6" / "8" )
-counter   = "counter=" 1*DIGIT
-period    = "period=" 1*DIGIT
+digits    = "digits=" ( "6" / "7" / "8" )
+counter   = "counter=" 1*DIGIT ; 0 to 2^64 - 1
+period    = "period=" 1*DIGIT ; greater than zero
 issuer    = "issuer=" *pchar ; domain name recommended
 extension = 1*( ALPHA / DIGIT / "-" / "_" ) "=" *pchar
 ~~~
@@ -137,7 +161,7 @@ A consumer MUST parse `label` before decoding as follows:
 
 ## otp-type
 
-`otp-type` identifies the OTP method and MUST be either `totp` or `hotp`.
+`otp-type` identifies the OTP method and MUST be either `totp` or `hotp`. A consumer MUST reject a URI with any other `otp-type`.
 
 ## label
 
@@ -164,13 +188,29 @@ A producer MUST include exactly one `secret` parameter.
 
 A consumer MUST reject the URI if `secret` is missing.
 
-A producer MAY include `algorithm`, `digits`, `counter`, `period`, and `issuer`; each known parameter MUST appear at most once.
+A producer MUST include `counter` if `otp-type` is `hotp`. A producer MAY include `algorithm`, `digits`, and `issuer`, and MAY include `period` if `otp-type` is `totp`. Each known parameter MUST appear at most once.
 
 A consumer MUST reject the URI if any known parameter appears more than once.
+
+{{param-applicability}} shows which parameters apply to each `otp-type`.
+
+| Parameter   | `totp`      | `hotp`      |
+|:------------|:------------|:------------|
+| `secret`    | REQUIRED    | REQUIRED    |
+| `issuer`    | RECOMMENDED | RECOMMENDED |
+| `algorithm` | OPTIONAL    | OPTIONAL    |
+| `digits`    | OPTIONAL    | OPTIONAL    |
+| `period`    | OPTIONAL    | NOT USED    |
+| `counter`   | NOT USED    | REQUIRED    |
+{: #param-applicability title="Parameter applicability by otp-type"}
+
+NOT USED means that a producer SHOULD NOT include the parameter and a consumer MUST ignore it.
 
 ### secret
 
 The `secret` parameter carries the shared OTP secret and is mandatory. The value MUST use unpadded Base32 with alphabet `A-Z2-7`, as specified by {{RFC4648}}. Producers SHOULD emit uppercase Base32 text. Consumers MAY accept lowercase Base32 text for interoperability.
+
+{{RFC4226}} requires a shared secret of at least 128 bits and recommends 160 bits (Section 4). Producers MUST use a secret that decodes to at least 128 bits and SHOULD use at least 160 bits. A consumer MAY reject a URI whose decoded `secret` is shorter than 128 bits.
 
 ### issuer
 
@@ -191,27 +231,38 @@ Valid `algorithm` values are `SHA1`, `SHA256`, and `SHA512`. Producers SHOULD us
 - Consumers MUST support `SHA1`.
 - Consumers SHOULD support `SHA256` and `SHA512`.
 
-For `hotp` URIs, {{RFC4226}} defines HOTP with HMAC-SHA-1, so `SHA1` is RECOMMENDED for maximum compatibility.
+{{RFC4226}} defines HOTP with HMAC-SHA-1 only, and {{RFC6238}} adds HMAC-SHA-256 and HMAC-SHA-512 for TOTP. This document also permits `SHA256` and `SHA512` with `hotp`, applying the same HMAC substitution, because some consumers support it. Some consumers ignore this parameter and always use `SHA1`; such a consumer generates codes that do not match the producer's. A producer SHOULD use `SHA1` with `hotp` unless it knows the consumer supports other values.
 
 If a consumer receives an unsupported `algorithm` value, it SHOULD reject the URI.
 
 ### digits
 
-`digits` is OPTIONAL. If absent, the default is `6`. Valid `digits` values are `6` and `8`.
+`digits` is OPTIONAL. If absent, the default is `6`. Valid `digits` values are `6`, `7`, and `8`.
 
 - Producers SHOULD use `6` or `8`.
 - Consumers MUST support `6`.
 - Consumers SHOULD support `8`.
+- Consumers MAY support `7`.
+
+{{RFC4226}} permits 7-digit codes, but {{GOOGLE-KEYURI}} lists only 6 and 8, so producers are advised to avoid 7.
 
 If a consumer receives an unsupported `digits` value, it SHOULD reject the URI.
 
 ### period
 
-`period` is OPTIONAL for `totp`. If absent, the default is `30`. It MUST be ignored for `hotp`.
+`period` is OPTIONAL for `totp`. It is the time step, in seconds, defined in {{RFC6238}}. The value MUST be a decimal integer greater than zero. If absent, the default is `30`. A consumer MUST reject the URI if `period` is not a decimal integer greater than zero.
+
+The start of time counting (T0 in {{RFC6238}}) is the Unix epoch, and time is measured in UTC. This document defines no parameter to change it.
+
+`period` is NOT USED for `hotp`.
 
 ### counter
 
-`counter` is REQUIRED for `hotp` and MUST be ignored for `totp`.
+`counter` is REQUIRED for `hotp`. It is the initial counter value, the value the consumer uses to generate the first code. The value MUST be a decimal integer from 0 to 18446744073709551615 (2^64 - 1) inclusive. A consumer MUST reject an `hotp` URI if `counter` is missing or is not a decimal integer in this range.
+
+After provisioning, the consumer maintains and increments the counter. A URI carries only the initial value and does not track later state.
+
+`counter` is NOT USED for `totp`.
 
 These parameters map to HOTP and TOTP behavior defined in {{RFC4226}} and {{RFC6238}}, while allowing extension values where explicitly noted.
 
@@ -266,6 +317,12 @@ Producers and consumers:
 
 Consumers SHOULD display issuer and account information clearly before import so users can detect phishing or provisioning mistakes.
 
+For `hotp`, the `counter` in a URI is only the initial value. A consumer that imports a previously issued URI again after generating codes would reset its counter, which can repeat codes already used or put it out of step with the verifier. A consumer SHOULD NOT silently replace the counter of an existing credential with the value from a newly imported URI.
+
+For `totp`, a code is valid only if the consumer's clock and the verifier's clock agree closely enough. Clock synchronization is outside the scope of this document.
+
+Verifier behavior, such as HOTP counter resynchronization and TOTP acceptance windows, is also outside the scope of this document; see {{RFC4226}} and {{RFC6238}}.
+
 # Privacy Considerations
 
 `otpauth:` URIs may reveal account identifiers and service associations through label and issuer fields.
@@ -283,4 +340,6 @@ Upon publication of this document as an RFC, IANA is requested to update the ref
 # Acknowledgments
 {:numbered="false"}
 
-The author thanks the maintainers and implementers of OTP ecosystems, including the teams at Apple and Google whose documentation helped shape existing interoperable behavior.
+The author thanks the maintainers and implementers of authenticator applications and password managers, including the teams at Apple and Google whose documentation helped shape existing interoperable behavior.
+
+The author also thanks İlteriş Eroğlu, author of {{I-D.linuxgemini-otpauth-uri}}, for earlier work bringing the `otpauth:` URI scheme to the IETF.
