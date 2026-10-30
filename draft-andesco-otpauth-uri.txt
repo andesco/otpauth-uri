@@ -4,8 +4,8 @@
 
 Network Working Group                                         A. Escobar
 Internet-Draft                                               independent
-Intended status: Informational                           29 October 2026
-Expires: 2 May 2027
+Intended status: Informational                           30 October 2026
+Expires: 3 May 2027
 
 
 The otpauth URI Scheme: One-Time Password (OTP) Credential Provisioning
@@ -44,7 +44,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 2 May 2027.
+   This Internet-Draft will expire on 3 May 2027.
 
 Copyright Notice
 
