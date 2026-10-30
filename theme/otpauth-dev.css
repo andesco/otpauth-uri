@@ -1,0 +1,137 @@
+:root {
+  --color-text: #111827;
+  --color-link: #4f46e5;
+  --color-link-hover: #818cf8;
+  --color-muted: #9ca3af;
+  --color-muted-strong: #6b7280;
+  --color-surface: #ffffff;
+  --color-surface-muted: #e5e7eb;
+  --color-ring: #d1d5db;
+  --color-focus: #4f46e5;
+  --color-primary: #4f46e5;
+  --color-root-bg: #ffffff;
+  --color-page-bg: #e5e7eb;
+}
+
+.dark {
+  --color-text: #f3f4f6;
+  --color-link: #818cf8;
+  --color-link-hover: #a5b4fc;
+  --color-muted: #d1d5db;
+  --color-muted-strong: #d1d5db;
+  --color-surface: #111827;
+  --color-surface-muted: #1f2937;
+  --color-ring: #6b7280;
+  --color-focus: #818cf8;
+  --color-root-bg: #030712;
+  --color-page-bg: #111827;
+}
+
+/* ---- map otpauth.dev's tokens onto the draft's variables (v3.css) ---- */
+:root, :root.dark {
+  --background-color: var(--color-page-bg);
+  --text-color: var(--color-text);
+  --title-color: var(--color-text);
+  --link-color: var(--color-link);
+  --code-bg: color-mix(in oklab, var(--color-page-bg), white 55%);
+  --highlight-color: var(--code-bg);
+  --line-color: var(--color-ring);
+  --pilcrow-weak: var(--color-ring);
+  --pilcrow-strong: var(--color-muted);
+  --font-title: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  scrollbar-color: var(--color-muted) var(--color-page-bg);
+}
+.dark { --code-bg: color-mix(in oklab, var(--color-page-bg), white 6%); color-scheme: dark; }
+:root:not(.dark) { color-scheme: light; }
+
+/* same rules as otpauth.dev's html/body/headings/links/lists/tables */
+html { background-color: var(--color-page-bg); -webkit-text-size-adjust: 100%; }
+body {
+  font-family: var(--font-title);
+  font-size: 1rem;
+  line-height: 1.5;
+  max-width: 36rem;
+  background-color: var(--color-page-bg);
+  color: var(--color-text);
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-title);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  font-size-adjust: none;
+  color: var(--color-text);
+}
+h1#title { font-size: 2rem; line-height: 2.25rem; }
+h2 { font-size: 1.75rem; line-height: 2rem; }
+h3 { font-size: 1.5rem; line-height: 1.75rem; }
+h4 { font-size: 1.25rem; line-height: 1.5rem; }
+h5, h6 { font-size: 1rem; line-height: 1.5rem; }
+a[href]:not(.pilcrow):not(.selfRef) { color: var(--color-link); text-decoration: underline; }
+a[href]:not(.pilcrow):not(.selfRef):hover { color: var(--color-link-hover); }
+a.selfRef { color: inherit; text-decoration: none; }
+li::marker { color: var(--color-muted); }
+table { font-size: 0.875rem; line-height: 1.4; }
+th, td { border: 0; border-bottom: 1px solid var(--color-ring); padding: 0.625rem 0.5rem; text-align: left; vertical-align: top; }
+th { font-weight: 700; }
+code, pre, tt { font-family: var(--font-mono); }
+tt, code { padding: 0.1em 0.25em; border-radius: 0.25rem; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+pre { border: 0; border-radius: 0.375rem; padding: 0.75rem 1rem; }
+pre code { padding: 0; background: none; }
+/* tables: no differentiated backgrounds */
+table :is(thead, tbody, tr, th, td) { background: none !important; }
+
+/* ToC button = .primary-action; panel = .control surface */
+.toc-toggle { background: var(--color-primary); border-radius: 0.375rem; font-size: 0.875rem; line-height: 1.5rem; font-weight: 600; box-shadow: 0 1px 2px rgb(0 0 0 / 0.05); }
+.toc-toggle:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+#tocMenu { --bs-offcanvas-bg: var(--color-surface); --bs-offcanvas-color: var(--color-text); --bs-offcanvas-border-color: var(--color-ring); }
+.dark .btn-close { filter: var(--bs-btn-close-white-filter); }
+
+/* ToC reads as body text, though every entry is a link */
+#tocMenu nav a[href],
+#tocMenu nav a[href]:visited,
+#tocMenu nav a[href]:hover,
+#tocMenu nav a[href]:focus-visible {
+  color: inherit;
+  text-decoration: none;
+  font-weight: inherit;
+}
+#tocMenu nav { font-size: 1rem; line-height: 1.5; }
+
+/* ToC: one even indent step per level, same spacing on every row */
+#tocMenu nav ul { margin: 0; padding: 0; }
+#tocMenu nav ul ul { padding-left: 1.25rem; }
+#tocMenu nav li { margin: 0; padding: 0; text-indent: 0; }
+#tocMenu nav li p { margin: 0; padding: 0.125rem 0; }
+
+/* Safari 26 tinting (Safari-color-tinting readme): body background-color is the tint source,
+   so the ToC panel uses the page colour too and no other full-width fixed layer overrides it. */
+#tocMenu { --bs-offcanvas-bg: var(--color-page-bg); }
+/* the tint fades in and out (opacity), at the same pace as the panel slides */
+#tocMenu { --bs-offcanvas-transition: transform 0.35s ease-in-out; }
+.offcanvas-backdrop { background-color: rgb(0 0 0 / 0.5) !important; }
+.offcanvas-backdrop.fade { opacity: 0; transition: opacity 0.35s ease-in-out; }
+.offcanvas-backdrop.show { opacity: 1 !important; }
+body {
+  padding-left: max(1rem, env(safe-area-inset-left)) !important;
+  padding-right: max(1rem, env(safe-area-inset-right)) !important;
+}
+
+/* Wide screens: the ToC is a permanent left sidebar. The text column is centred in the space
+   to its right (html padding), so the sidebar only gives way when sidebar + column no longer fit. */
+@media (min-width: 960px) {
+  html { padding-left: 18rem; }
+  #tocMenu {
+    visibility: visible !important;
+    transform: none !important;
+    transition: none;
+    width: 18rem;
+    background-color: transparent;
+    border: 0;
+    z-index: 1;
+  }
+  #tocMenu .offcanvas-header,
+  .toc-toggle,
+  .offcanvas-backdrop { display: none !important; }
+  #tocMenu .offcanvas-body { padding-top: 1.5rem; }
+}
