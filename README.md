@@ -1,8 +1,8 @@
 <!-- regenerate: on (set to off if you edit this file) -->
 
-# The otpauth URI Scheme
+# The otpauth URI Scheme: One-Time Password (OTP) Credential Provisioning
 
-This is the working area for the individual Internet-Draft, "The otpauth URI Scheme".
+This is the working area for the individual Internet-Draft, "The otpauth URI Scheme: One-Time Password (OTP) Credential Provisioning".
 
 * [Editor's Copy](https://andesco.github.io/otpauth-uri/#go.draft-andesco-otpauth-uri.html)
 * [Datatracker Page](https://datatracker.ietf.org/doc/draft-andesco-otpauth-uri)
